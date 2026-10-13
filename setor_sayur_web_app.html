@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setor Sayur - Green-Tech Smart Composting Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            900: '#064e3b',
+                        },
+                        boxGreen: '#10B981',
+                        boxYellow: '#F59E0B',
+                        boxRed: '#EF4444'
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(229, 231, 235, 0.8);
+        }
+        .animate-bounce-short {
+            animation: bounce 1s infinite alternate;
+        }
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-4px); }
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #10b981; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col selection:bg-brand-500 selection:text-white">
+
+    <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-emerald-100 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Brand Logo -->
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('dashboard')">
+                    <div class="w-12 h-12 bg-gradient-to-tr from-brand-600 to-emerald-400 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-brand-500/30 transform hover:scale-105 transition-transform">
+                        <i class="fa-solid font-bold fa-recycle text-2xl"></i>
+                    </div>
+                    <div>
+                        <span class="text-2xl font-extrabold bg-gradient-to-r from-brand-700 to-emerald-500 bg-clip-text text-transparent">Setor Sayur</span>
+                        <span class="block text-[10px] tracking-wider uppercase font-bold text-slate-400">Green-Tech Composting</span>
+                    </div>
+                </div>
+
+                <!-- Desktop Nav -->
+                <nav class="hidden md:flex space-x-1 lg:space-x-2 bg-emerald-50/60 p-1.5 rounded-full border border-emerald-100">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-link active px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 bg-brand-600 text-white shadow-sm">
+                        <i class="fa-solid fa-chart-pie mr-1.5"></i> Dashboard
+                    </button>
+                    <button onclick="switchTab('sorter')" id="nav-sorter" class="nav-link px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 text-slate-600 hover:text-brand-600 hover:bg-white/80">
+                        <i class="fa-solid fa-magnifying-glass-glass-chart mr-1.5"></i> Pemilahan
+                    </button>
+                    <button onclick="switchTab('rewards')" id="nav-rewards" class="nav-link px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 text-slate-600 hover:text-brand-600 hover:bg-white/80">
+                        <i class="fa-solid fa-gift mr-1.5"></i> Tukar Poin
+                    </button>
+                    <button onclick="switchTab('pickup')" id="nav-pickup" class="nav-link px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 text-slate-600 hover:text-brand-600 hover:bg-white/80">
+                        <i class="fa-solid fa-truck-ramp-box mr-1.5"></i> Penjemputan
+                    </button>
+                    <button onclick="switchTab('carbon')" id="nav-carbon" class="nav-link px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 text-slate-600 hover:text-brand-600 hover:bg-white/80">
+                        <i class="fa-solid fa-leaf mr-1.5"></i> Karbon
+                    </button>
+                </nav>
+
+                <!-- User Profile & Points -->
+                <div class="flex items-center space-x-3">
+                    <div class="bg-gradient-to-r from-amber-500/10 to-emerald-500/10 border border-amber-300/50 px-3.5 py-1.5 rounded-full flex items-center space-x-2 shadow-sm">
+                        <i class="fa-solid fa-coins text-amber-500 text-lg"></i>
+                        <div>
+                            <span class="block text-[10px] uppercase font-bold text-slate-400">Poin Anda</span>
+                            <span id="user-points" class="font-extrabold text-slate-800 text-sm sm:text-base">1,250</span>
+                        </div>
+                    </div>
+
+                    <div class="hidden sm:flex items-center space-x-2 pl-2 border-l border-slate-200">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150" alt="Avatar" class="w-10 h-10 rounded-full border-2 border-brand-500 object-cover shadow">
+                        <div class="hidden lg:block text-left">
+                            <p class="text-xs font-bold text-slate-800 leading-tight">Siti Aminah</p>
+                            <span class="text-[10px] text-emerald-600 font-medium">Mitra Rumah Tangga</span>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Menu Button -->
+                    <button onclick="toggleMobileMenu()" class="md:hidden p-2 text-slate-600 hover:text-brand-600 focus:outline-none">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-4 space-y-2">
+            <button onclick="switchTab('dashboard'); toggleMobileMenu();" class="w-full text-left px-4 py-2.5 rounded-xl font-semibold text-slate-700 hover:bg-emerald-50 flex items-center"><i class="fa-solid fa-chart-pie w-6 text-brand-600"></i> Dashboard Box</button>
+            <button onclick="switchTab('sorter'); toggleMobileMenu();" class="w-full text-left px-4 py-2.5 rounded-xl font-semibold text-slate-700 hover:bg-emerald-50 flex items-center"><i class="fa-solid fa-magnifying-glass-chart w-6 text-brand-600"></i> Panduan Pemilahan</button>
+            <button onclick="switchTab('rewards'); toggleMobileMenu();" class="w-full text-left px-4 py-2.5 rounded-xl font-semibold text-slate-700 hover:bg-emerald-50 flex items-center"><i class="fa-solid fa-gift w-6 text-brand-600"></i> Penukaran Poin</button>
+            <button onclick="switchTab('pickup'); toggleMobileMenu();" class="w-full text-left px-4 py-2.5 rounded-xl font-semibold text-slate-700 hover:bg-emerald-50 flex items-center"><i class="fa-solid fa-truck-ramp-box w-6 text-brand-600"></i> Jadwal Penjemputan</button>
+            <button onclick="switchTab('carbon'); toggleMobileMenu();" class="w-full text-left px-4 py-2.5 rounded-xl font-semibold text-slate-700 hover:bg-emerald-50 flex items-center"><i class="fa-solid fa-leaf w-6 text-brand-600"></i> Kalkulator Karbon</button>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- SECTION 1: DASHBOARD SMART COMPOSTING BOX -->
+        <section id="sec-dashboard" class="space-y-8">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-emerald-800 to-brand-700 p-6 sm:p-8 rounded-3xl text-white shadow-xl relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+                <div class="relative z-10">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-xs font-semibold backdrop-blur-sm mb-3">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> IoT Sensor Connected
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Smart Composting Box Status</h1>
+                    <p class="text-emerald-100 text-sm mt-1 max-w-xl">Pantau kondisi suhu, kelembapan, dan kapasitas kompos secara real-time untuk menghasilkan pupuk organik berkualitas tinggi.</p>
+                </div>
+                <div class="flex items-center gap-3 relative z-10">
+                    <button onclick="openAddWasteModal()" class="px-5 py-3 bg-amber-400 hover:bg-amber-300 text-slate-900 font-bold rounded-2xl shadow-lg transition transform hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2">
+                        <i class="fa-solid fa-plus-circle text-lg"></i> Simulasi Setor Sampah
+                    </button>
+                </div>
+            </div>
+
+            <!-- 3 Category Smart Boxes -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                <!-- BOX HIJAU -->
+                <div class="glass-card rounded-3xl p-6 relative overflow-hidden border-t-8 border-emerald-500 shadow-md hover:shadow-xl transition-all">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-seedling text-emerald-600"></i> Box Hijau
+                        </span>
+                        <span id="box-green-status" class="text-xs font-semibold px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200">Kondisi Optimal</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-800">Sayuran Mentah & Segar</h3>
+                    <p class="text-xs text-slate-500 mb-6">Kulit wortel, batang bayam, sawi mentah (Tinggi Nitrogen)</p>
+
+                    <!-- Gauge Progress -->
+                    <div class="mb-6">
+                        <div class="flex justify-between items-baseline mb-1">
+                            <span class="text-xs font-semibold text-slate-600">Kapasitas Box</span>
+                            <span id="box-green-cap-text" class="text-2xl font-extrabold text-emerald-600">75%</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden p-0.5 border border-slate-200">
+                            <div id="box-green-bar" class="bg-gradient-to-r from-emerald-400 to-emerald-600 h-full rounded-full transition-all duration-500" style="width: 75%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Sensor Metrics -->
+                    <div class="grid grid-cols-2 gap-3 mb-6 bg-slate-50/80 p-3 rounded-2xl border border-slate-100">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600"><i class="fa-solid fa-temperature-half"></i></div>
+                            <div>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase">Suhu</p>
+                                <p id="box-green-temp" class="text-sm font-bold text-slate-700">28°C</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600"><i class="fa-solid fa-droplet"></i></div>
+                            <div>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase">Kelembapan</p>
+                                <p id="box-green-hum" class="text-sm font-bold text-slate-700">60%</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="addWasteTo('green')" class="w-full py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-xl border border-emerald-200 transition flex items-center justify-center gap-2 text-sm">
+                        <i class="fa-solid fa-plus text-xs"></i> + Setor Ke Box Hijau
+                    </button>
+                </div>
+
+                <!-- BOX KUNING -->
+                <div class="glass-card rounded-3xl p-6 relative overflow-hidden border-t-8 border-amber-500 shadow-md hover:shadow-xl transition-all">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-utensils text-amber-600"></i> Box Kuning
+                        </span>
+                        <span id="box-yellow-status" class="text-xs font-semibold px-2.5 py-1 bg-amber-50 text-amber-700 rounded-lg border border-amber-200">Cek Kelembapan</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-800">Sayuran Olahan / Layu</h3>
+                    <p class="text-xs text-slate-500 mb-6">Sisa sayur tumis, layu kulkas (Minim Minyak/Santan)</p>
+
+                    <!-- Gauge Progress -->
+                    <div class="mb-6">
+                        <div class="flex justify-between items-baseline mb-1">
+                            <span class="text-xs font-semibold text-slate-600">Kapasitas Box</span>
+                            <span id="box-yellow-cap-text" class="text-2xl font-extrabold text-amber-500">45%</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden p-0.5 border border-slate-200">
+                            <div id="box-yellow-bar" class="bg-gradient-to-r from-amber-400 to-amber-500 h-full rounded-full transition-all duration-500" style="width: 45%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Sensor Metrics -->
+                    <div class="grid grid-cols-2 gap-3 mb-6 bg-slate-50/80 p-3 rounded-2xl border border-slate-100">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600"><i class="fa-solid fa-temperature-half"></i></div>
+                            <div>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase">Suhu</p>
+                                <p id="box-yellow-temp" class="text-sm font-bold text-slate-700">32°C</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600"><i class="fa-solid fa-droplet"></i></div>
+                            <div>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase">Kelembapan</p>
+                                <p id="box-yellow-hum" class="text-sm font-bold text-slate-700">65%</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="addWasteTo('yellow')" class="w-full py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold rounded-xl border border-amber-200 transition flex items-center justify-center gap-2 text-sm">
+                        <i class="fa-solid fa-plus text-xs"></i> + Setor Ke Box Kuning
+                    </button>
+                </div>
+
+                <!-- BOX MERAH -->
+                <div class="glass-card rounded-3xl p-6 relative overflow-hidden border-t-8 border-rose-500 shadow-md hover:shadow-xl transition-all">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="px-3 py-1 bg-rose-100 text-rose-800 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-apple-whole text-rose-600"></i> Box Merah
+                        </span>
+                        <span id="box-red-status" class="text-xs font-bold px-2.5 py-1 bg-rose-100 text-rose-700 rounded-lg border border-rose-300 animate-pulse">Hampir Penuh!</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-800">Sampah Kulit Buah</h3>
+                    <p class="text-xs text-slate-500 mb-6">Kulit pisang, pepaya, jeruk (Asam Organik Tinggi)</p>
+
+                    <!-- Gauge Progress -->
+                    <div class="mb-6">
+                        <div class="flex justify-between items-baseline mb-1">
+                            <span class="text-xs font-semibold text-slate-600">Kapasitas Box</span>
+                            <span id="box-red-cap-text" class="text-2xl font-extrabold text-rose-600">90%</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden p-0.5 border border-slate-200">
+                            <div id="box-red-bar" class="bg-gradient-to-r from-rose-400 to-rose-600 h-full rounded-full transition-all duration-500" style="width: 90%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Sensor Metrics -->
+                    <div class="grid grid-cols-2 gap-3 mb-6 bg-slate-50/80 p-3 rounded-2xl border border-slate-100">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 bg-rose-100 rounded-xl flex items-center justify-center text-rose-600"><i class="fa-solid fa-temperature-half"></i></div>
+                            <div>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase">Suhu</p>
+                                <p id="box-red-temp" class="text-sm font-bold text-slate-700">30°C</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600"><i class="fa-solid fa-droplet"></i></div>
+                            <div>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase">Kelembapan</p>
+                                <p id="box-red-hum" class="text-sm font-bold text-slate-700">55%</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="switchTab('pickup')" class="w-full py-2.5 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 text-sm">
+                        <i class="fa-solid fa-truck"></i> Jadwalkan Penjemputan
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Quick Tips Banner -->
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 bg-blue-500 text-white rounded-2xl flex items-center justify-center flex-shrink-0 text-xl shadow">
+                        <i class="fa-solid fa-lightbulb"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-sm sm:text-base">Tips Bebas Bau & Kompos Matang Sempurna</h4>
+                        <p class="text-xs text-slate-600">Pastikan sisa sayur olahan di Box Kuning sudah ditiriskan dari minyak atau kuah santan kental sebelum dimasukkan.</p>
+                    </div>
+                </div>
+                <button onclick="openChatWith('tips')" class="whitespace-nowrap px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow transition">
+                    Tanya AI Tips Kompos
+                </button>
+            </div>
+        </section>
+
+        <!-- SECTION 2: PANDUAN PEMILAHAN SAMPAH (INTERACTIVE SORTER) -->
+        <section id="sec-sorter" class="hidden space-y-8">
+            <div class="text-center max-w-2xl mx-auto">
+                <span class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold uppercase tracking-wider">Interactive Sorter Tool</span>
+                <h2 class="text-3xl font-extrabold text-slate-800 mt-2">Bingung Sampah Masuk Box Mana?</h2>
+                <p class="text-slate-500 text-sm mt-1">Ketik nama sisa bahan makanan atau klik pilihan cepat di bawah untuk mengetahui rekomendasi pemilahan yang tepat.</p>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="max-w-xl mx-auto relative">
+                <div class="relative">
+                    <input type="text" id="sorter-search" onkeyup="liveSearchWaste()" placeholder="Ketik misalnya: kulit pisang, batang bayam, sisa tumis kangkung..." class="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-slate-200 focus:border-brand-500 focus:ring-4 focus:ring-emerald-100 text-sm font-medium shadow-sm transition outline-none">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+                </div>
+            </div>
+
+            <!-- Quick Selection Tags -->
+            <div class="flex flex-wrap justify-center gap-2 max-w-3xl mx-auto">
+                <span class="text-xs font-bold text-slate-400 self-center mr-2">Pilihan Cepat:</span>
+                <button onclick="checkWaste('Kulit Pisang')" class="px-3.5 py-1.5 bg-white border border-slate-200 hover:border-brand-500 rounded-xl text-xs font-semibold text-slate-700 hover:bg-emerald-50 transition shadow-sm">🍌 Kulit Pisang</button>
+                <button onclick="checkWaste('Batang Bayam')" class="px-3.5 py-1.5 bg-white border border-slate-200 hover:border-brand-500 rounded-xl text-xs font-semibold text-slate-700 hover:bg-emerald-50 transition shadow-sm">🥬 Batang Bayam</button>
+                <button onclick="checkWaste('Sisa Tumis Kangkung')" class="px-3.5 py-1.5 bg-white border border-slate-200 hover:border-brand-500 rounded-xl text-xs font-semibold text-slate-700 hover:bg-emerald-50 transition shadow-sm">🍲 Sisa Tumis Kangkung</button>
+                <button onclick="checkWaste('Kulit Jeruk')" class="px-3.5 py-1.5 bg-white border border-slate-200 hover:border-brand-500 rounded-xl text-xs font-semibold text-slate-700 hover:bg-emerald-50 transition shadow-sm">🍊 Kulit Jeruk</button>
+                <button onclick="checkWaste('Daun Sawi Layu')" class="px-3.5 py-1.5 bg-white border border-slate-200 hover:border-brand-500 rounded-xl text-xs font-semibold text-slate-700 hover:bg-emerald-50 transition shadow-sm">🥗 Daun Sawi Layu</button>
+            </div>
+
+            <!-- Result Display Card -->
+            <div id="sorter-result-card" class="max-w-2xl mx-auto glass-card rounded-3xl p-6 sm:p-8 border-2 border-emerald-500 shadow-xl transition-all">
+                <div id="sorter-result-content">
+                    <!-- Default State -->
+                    <div class="text-center py-6">
+                        <div class="w-16 h-16 bg-emerald-100 text-brand-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
+                            <i class="fa-solid fa-filter"></i>
+                        </div>
+                        <h4 class="font-bold text-slate-800">Cari atau Klik Bahan Limbah Organik</h4>
+                        <p class="text-xs text-slate-500 mt-1">Sistem AI Setor Sayur akan memetakan kategori box terbaik secara otomatis.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: PENUKARAN POIN & GAMIFIKASI -->
+        <section id="sec-rewards" class="hidden space-y-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-slate-200 pb-6">
+                <div>
+                    <span class="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-bold uppercase tracking-wider">Rewards & Gamifikasi</span>
+                    <h2 class="text-3xl font-extrabold text-slate-800 mt-2">Tukarkan Poin Hijau Anda</h2>
+                    <p class="text-slate-500 text-sm">Dapatkan hadiah nyata dari hasil konsistensi Anda mengelola sampah organik rumah tangga.</p>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center text-2xl font-bold"><i class="fa-solid fa-coins"></i></div>
+                    <div>
+                        <p class="text-xs text-slate-400 font-bold uppercase">Saldo Poin Aktif</p>
+                        <p id="store-points-display" class="text-2xl font-extrabold text-slate-800">1,250 Poin</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rewards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+                <!-- Item 1 -->
+                <div class="glass-card rounded-3xl p-5 border border-slate-200 flex flex-col justify-between hover:shadow-lg transition">
+                    <div>
+                        <div class="w-full h-36 bg-gradient-to-tr from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white mb-4 relative overflow-hidden">
+                            <i class="fa-solid fa-mobile-screen-button text-5xl opacity-90"></i>
+                            <span class="absolute top-2 right-2 bg-white/20 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase">Digital</span>
+                        </div>
+                        <h4 class="font-bold text-slate-800 text-base">Pulsa / E-Wallet Rp 10.000</h4>
+                        <p class="text-xs text-slate-500 mt-1">Dapat dikirimkan langsung ke nomor HP terdaftar (Gopay/OVO/Pulsa).</p>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+                        <span class="font-extrabold text-amber-600 text-sm"><i class="fa-solid fa-coins mr-1"></i> 300 Poin</span>
+                        <button onclick="redeemReward('Pulsa / E-Wallet Rp 10.000', 300)" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl transition shadow">Tukar</button>
+                    </div>
+                </div>
+
+                <!-- Item 2 -->
+                <div class="glass-card rounded-3xl p-5 border border-slate-200 flex flex-col justify-between hover:shadow-lg transition">
+                    <div>
+                        <div class="w-full h-36 bg-gradient-to-tr from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center text-white mb-4 relative overflow-hidden">
+                            <i class="fa-solid fa-basket-shopping text-5xl opacity-90"></i>
+                            <span class="absolute top-2 right-2 bg-white/20 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase">Diskon Belanja</span>
+                        </div>
+                        <h4 class="font-bold text-slate-800 text-base">Voucher Sayur Segar 25%</h4>
+                        <p class="text-xs text-slate-500 mt-1">Potongan belanja sayuran organik segar di mitra pasar Setor Sayur.</p>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+                        <span class="font-extrabold text-amber-600 text-sm"><i class="fa-solid fa-coins mr-1"></i> 450 Poin</span>
+                        <button onclick="redeemReward('Voucher Diskon Sayur Segar 25%', 450)" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl transition shadow">Tukar</button>
+                    </div>
+                </div>
+
+                <!-- Item 3 -->
+                <div class="glass-card rounded-3xl p-5 border border-slate-200 flex flex-col justify-between hover:shadow-lg transition">
+                    <div>
+                        <div class="w-full h-36 bg-gradient-to-tr from-amber-600 to-orange-600 rounded-2xl flex items-center justify-center text-white mb-4 relative overflow-hidden">
+                            <i class="fa-solid fa-cubes-stacked text-5xl opacity-90"></i>
+                            <span class="absolute top-2 right-2 bg-white/20 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase">Pupuk Matang</span>
+                        </div>
+                        <h4 class="font-bold text-slate-800 text-base">1 Bag Pupuk Kompos 5kg</h4>
+                        <p class="text-xs text-slate-500 mt-1">Pupuk organik kaya nutrisi hasil olahan Smart Composting Box.</p>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+                        <span class="font-extrabold text-amber-600 text-sm"><i class="fa-solid fa-coins mr-1"></i> 500 Poin</span>
+                        <button onclick="redeemReward('1 Bag Pupuk Kompos Organik Matang 5kg', 500)" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl transition shadow">Tukar</button>
+                    </div>
+                </div>
+
+                <!-- Item 4 -->
+                <div class="glass-card rounded-3xl p-5 border border-slate-200 flex flex-col justify-between hover:shadow-lg transition">
+                    <div>
+                        <div class="w-full h-36 bg-gradient-to-tr from-green-600 to-emerald-800 rounded-2xl flex items-center justify-center text-white mb-4 relative overflow-hidden">
+                            <i class="fa-solid fa-seedling text-5xl opacity-90"></i>
+                            <span class="absolute top-2 right-2 bg-white/20 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase">Urban Farming</span>
+                        </div>
+                        <h4 class="font-bold text-slate-800 text-base">Packet Benih Urban Farming</h4>
+                        <p class="text-xs text-slate-500 mt-1">Paket benih cabai, kangkung, dan bayam siap tanam untuk pekarangan.</p>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+                        <span class="font-extrabold text-amber-600 text-sm"><i class="fa-solid fa-coins mr-1"></i> 200 Poin</span>
+                        <button onclick="redeemReward('Benih Tanaman Urban Farming', 200)" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl transition shadow">Tukar</button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 4: JADWAL PENJEMPUTAN BOX -->
+        <section id="sec-pickup" class="hidden space-y-8">
+            <div class="max-w-3xl mx-auto glass-card rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-xl">
+                <div class="mb-8 border-b border-slate-100 pb-4">
+                    <span class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold uppercase tracking-wider">Layanan Layanan Penjemputan</span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-800 mt-2">Atur Penjemputan Box Penuh</h2>
+                    <p class="text-slate-500 text-sm">Mitra kurir hijau kami akan datang menjemput box yang sudah siap diolah menjadi kompos.</p>
+                </div>
+
+                <form id="pickup-form" onsubmit="submitPickup(event)" class="space-y-6">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Pilih Box Yang Siap Di-Setor:</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <label class="flex items-center gap-3 p-3.5 border-2 border-slate-200 rounded-2xl cursor-pointer hover:border-emerald-500 transition">
+                                <input type="checkbox" name="box" value="Hijau" class="w-5 h-5 text-brand-600 rounded focus:ring-brand-500">
+                                <div>
+                                    <p class="font-bold text-xs text-slate-800">Box Hijau</p>
+                                    <p class="text-[10px] text-slate-400">Mentah (75%)</p>
+                                </div>
+                            </label>
+                            <label class="flex items-center gap-3 p-3.5 border-2 border-slate-200 rounded-2xl cursor-pointer hover:border-amber-500 transition">
+                                <input type="checkbox" name="box" value="Kuning" class="w-5 h-5 text-amber-600 rounded focus:ring-amber-500">
+                                <div>
+                                    <p class="font-bold text-xs text-slate-800">Box Kuning</p>
+                                    <p class="text-[10px] text-slate-400">Olahan (45%)</p>
+                                </div>
+                            </label>
+                            <label class="flex items-center gap-3 p-3.5 border-2 border-slate-200 rounded-2xl cursor-pointer hover:border-rose-500 transition bg-rose-50/50">
+                                <input type="checkbox" name="box" value="Merah" checked class="w-5 h-5 text-rose-600 rounded focus:ring-rose-500">
+                                <div>
+                                    <p class="font-bold text-xs text-slate-800">Box Merah</p>
+                                    <p class="text-[10px] text-rose-600 font-semibold">Buah (90% Penuh)</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Tanggal Penjemputan:</label>
+                            <input type="date" required id="pickup-date" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 outline-none text-sm font-medium">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Waktu Penjemputan:</label>
+                            <select id="pickup-time" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 outline-none text-sm font-medium">
+                                <option value="09:00 - 11:00 WIB">09:00 - 11:00 WIB (Pagi)</option>
+                                <option value="13:00 - 15:00 WIB">13:00 - 15:00 WIB (Siang)</option>
+                                <option value="16:00 - 18:00 WIB">16:00 - 18:00 WIB (Sore)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Alamat Penjemputan:</label>
+                        <textarea id="pickup-address" rows="3" required placeholder="Masukkan alamat lengkap lokasi penjemputan..." class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 outline-none text-sm font-medium">Jl. Hijau Lestari No. 42, RT 03 / RW 05, Kelurahan Kebun Jeruk, Jakarta Barat</textarea>
+                    </div>
+
+                    <button type="submit" class="w-full py-4 bg-brand-600 hover:bg-brand-700 text-white font-extrabold rounded-2xl shadow-lg hover:shadow-xl transition transform active:scale-[0.99] flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-calendar-check text-lg"></i> Konfirmasi Jadwal Penjemputan
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- SECTION 5: KALKULATOR DAMPAK KARBON -->
+        <section id="sec-carbon" class="hidden space-y-8">
+            <div class="text-center max-w-2xl mx-auto">
+                <span class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold uppercase tracking-wider">Carbon Offset Impact Tracker</span>
+                <h2 class="text-3xl font-extrabold text-slate-800 mt-2">Dampak Nyata Lingkungan Anda</h2>
+                <p class="text-slate-500 text-sm">Lihat akumulasi kontribusi Anda dalam menekan emisi gas rumah kaca melalui pemilahan sampah organik.</p>
+            </div>
+
+            <!-- Stats Widgets -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div class="glass-card rounded-3xl p-6 border border-slate-200 flex items-center gap-4">
+                    <div class="w-14 h-14 bg-emerald-100 text-brand-600 rounded-2xl flex items-center justify-center text-2xl font-bold">
+                        <i class="fa-solid fa-weight-hanging"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 font-bold uppercase">Total Sampah Didaur Ulang</p>
+                        <p id="total-waste-recycled" class="text-2xl font-extrabold text-slate-800">48.5 kg</p>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-3xl p-6 border border-slate-200 flex items-center gap-4">
+                    <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-2xl font-bold">
+                        <i class="fa-solid fa-smog"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 font-bold uppercase">Emisi CO2e Dicegah</p>
+                        <p id="total-co2-saved" class="text-2xl font-extrabold text-slate-800">121.25 kg</p>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-3xl p-6 border border-slate-200 flex items-center gap-4">
+                    <div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-2xl font-bold">
+                        <i class="fa-solid fa-tree"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 font-bold uppercase">Setara Pohon Ditanam</p>
+                        <p id="total-trees-saved" class="text-2xl font-extrabold text-slate-800">6 Pohon</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Progress Chart -->
+            <div class="glass-card rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-md">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-lg">Progres Pengurangan Emisi Karbon (2026)</h4>
+                        <p class="text-xs text-slate-500">Estimasi CO2e yang tidak terlepas ke TPA akibat dekomposisi terkontrol.</p>
+                    </div>
+                    <span class="text-xs bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full font-bold">Target Bulanan: 80% Tercapai</span>
+                </div>
+                <div class="h-64 sm:h-80 w-full">
+                    <canvas id="carbonChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FLOATING AI CHAT ASSISTANT -->
+    <div class="fixed bottom-6 right-6 z-50">
+        <!-- Chat Toggle Button -->
+        <button onclick="toggleChatWindow()" class="w-14 h-14 bg-gradient-to-r from-brand-600 to-emerald-500 hover:from-brand-700 hover:to-emerald-600 text-white rounded-full shadow-2xl flex items-center justify-center text-2xl transition transform hover:scale-110 active:scale-95 focus:outline-none relative">
+            <i class="fa-solid fa-headset"></i>
+            <span class="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 border-2 border-white rounded-full"></span>
+        </button>
+
+        <!-- Chat Window Drawer -->
+        <div id="chat-window" class="hidden absolute bottom-18 right-0 w-80 sm:w-96 bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col h-[480px] transition-all">
+            <!-- Chat Header -->
+            <div class="bg-gradient-to-r from-emerald-800 to-brand-700 p-4 text-white flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center text-emerald-300 font-bold">
+                        <i class="fa-solid fa-bot"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold leading-tight">Asisten Setor Sayur</h4>
+                        <span class="text-[10px] text-emerald-200">AI Green-Tech Online</span>
+                    </div>
+                </div>
+                <button onclick="toggleChatWindow()" class="text-white/80 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Chat Messages Log -->
+            <div id="chat-messages" class="flex-grow p-4 overflow-y-auto space-y-3 bg-slate-50 text-xs">
+                <!-- AI Welcome Message -->
+                <div class="flex items-start space-x-2">
+                    <div class="w-7 h-7 bg-brand-600 text-white rounded-lg flex items-center justify-center flex-shrink-0 text-xs"><i class="fa-solid fa-leaf"></i></div>
+                    <div class="bg-white p-3 rounded-2xl border border-slate-200 max-w-[80%] text-slate-700 shadow-sm">
+                        Halo! Saya Asisten Setor Sayur AI. Ada yang bisa saya bantu terkait pemilahan box, penukaran poin, atau tips mencegah bau kompos hari ini? 🌱
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Chat Suggestions -->
+            <div class="p-2 bg-white border-t border-slate-100 flex gap-1.5 overflow-x-auto whitespace-nowrap text-[11px]">
+                <button onclick="sendQuickChat('Kenapa kompos bau?')" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg border border-emerald-200">❓ Kompos Bau?</button>
+                <button onclick="sendQuickChat('Bedanya Box Hijau & Kuning?')" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg border border-emerald-200">🥬 Box Hijau vs Kuning</button>
+                <button onclick="sendQuickChat('Cara tukar poin?')" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg border border-emerald-200">🎁 Tukar Poin</button>
+            </div>
+
+            <!-- Chat Input Area -->
+            <div class="p-3 bg-white border-t border-slate-200 flex items-center space-x-2">
+                <input type="text" id="chat-input" onkeypress="handleChatKeyPress(event)" placeholder="Ketik pertanyaan Anda..." class="flex-grow px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 text-xs outline-none">
+                <button onclick="sendChatMessage()" class="w-9 h-9 bg-brand-600 hover:bg-brand-700 text-white rounded-xl flex items-center justify-center transition flex-shrink-0">
+                    <i class="fa-solid fa-paper-plane text-xs"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 1: SIMULASI TAMBAH SAMPAH -->
+    <div id="modal-add-waste" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-200">
+            <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-800 text-lg">Simulasi Setor Sampah Baru</h3>
+                <button onclick="closeAddWasteModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-2">Pilih Box Tujuan:</label>
+                    <select id="sim-box-target" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="green">Box Hijau (Sayur Mentah / Segar)</option>
+                        <option value="yellow">Box Kuning (Sayur Olahan / Layu)</option>
+                        <option value="red">Box Merah (Sampah Buah / Kulit)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-2">Perkiraan Berat (kg):</label>
+                    <input type="number" id="sim-waste-weight" value="1.5" step="0.5" min="0.5" max="10" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+
+                <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-200 text-xs text-emerald-800">
+                    <i class="fa-solid fa-circle-info mr-1"></i> Setiap 1 kg sampah organik menyumbang <strong>+50 Poin</strong> dan mengurangi emisi sekitar <strong>2.5 kg CO2e</strong>!
+                </div>
+
+                <button onclick="executeWasteAdd()" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow transition">
+                    Proses Setor Sampah
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: NOTIFIKASI TRANSAKSI / KONFIRMASI -->
+    <div id="modal-notif" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl">
+            <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                <i id="notif-icon" class="fa-solid fa-check"></i>
+            </div>
+            <h3 id="notif-title" class="font-bold text-slate-800 text-xl mb-2">Berhasil!</h3>
+            <p id="notif-message" class="text-xs text-slate-600 mb-6">Transaksi Anda telah diproses dengan sukses.</p>
+            <button onclick="closeNotifModal()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl">
+                Tutup
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Global State Variables
+        let state = {
+            points: 1250,
+            boxes: {
+                green: { capacity: 75, temp: 28, humidity: 60, status: 'Kondisi Optimal' },
+                yellow: { capacity: 45, temp: 32, humidity: 65, status: 'Cek Kelembapan' },
+                red: { capacity: 90, temp: 30, humidity: 55, status: 'Hampir Penuh!' }
+            },
+            stats: {
+                recycledKg: 48.5,
+                co2SavedKg: 121.25,
+                treesSaved: 6
+            }
+        };
+
+        // Waste Database for Sorter
+        const wasteDb = [
+            { name: 'Kulit Pisang', box: 'Merah', desc: 'Kulit Buah', reason: 'Kaya asam organik dan potasium tinggi. Sangat baik untuk proses dekomposisi awal.', tips: 'Potong kecil-kecil agar dekomposisi 2x lebih cepat.' },
+            { name: 'Batang Bayam', box: 'Hijau', desc: 'Sayuran Mentah & Segar', reason: 'Tinggi kadar nitrogen dan kelembapan alami mentah.', tips: 'Campur secara seimbang agar sirkulasi udara baik.' },
+            { name: 'Sisa Tumis Kangkung', box: 'Kuning', desc: 'Sayuran Olahan / Layu', reason: 'Mengandung minyak tipis dan garam dapur hasil masakan.', tips: 'Tiriskan sisa minyak atau kuah sebelum dimasukkan.' },
+            { name: 'Kulit Jeruk', box: 'Merah', desc: 'Kulit Buah', reason: 'Mengandung minyak atsiri alami dan asam organik.', tips: 'Gunakan secukupnya untuk aroma segar alami kompos.' },
+            { name: 'Daun Sawi Layu', box: 'Kuning', desc: 'Sayuran Layu', reason: 'Sayur mentah yang sudah layu di suhu ruang atau kulkas.', tips: 'Cincang kasar sebelum disetor.' },
+            { name: 'Kulit Wortel', box: 'Hijau', desc: 'Sayuran Mentah', reason: 'Serat mentah kaya mikrohara.', tips: 'Langsung masukkan ke Box Hijau.' }
+        ];
+
+        // Init Chart & Page Logic
+        window.onload = function() {
+            initCarbonChart();
+            // Set default pickup date to tomorrow
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('pickup-date').value = tomorrow.toISOString().split('T')[0];
+        };
+
+        // Navigation Tab Switcher
+        function switchTab(tabId) {
+            const sections = ['dashboard', 'sorter', 'rewards', 'pickup', 'carbon'];
+            sections.forEach(s => {
+                document.getElementById(`sec-${s}`).classList.add('hidden');
+                const navBtn = document.getElementById(`nav-${s}`);
+                if (navBtn) {
+                    navBtn.classList.remove('bg-brand-600', 'text-white', 'shadow-sm');
+                    navBtn.classList.add('text-slate-600', 'hover:text-brand-600');
+                }
+            });
+
+            document.getElementById(`sec-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-brand-600', 'text-white', 'shadow-sm');
+                activeBtn.classList.remove('text-slate-600');
+            }
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Live Waste Sorter Logic
+        function checkWaste(query) {
+            const item = wasteDb.find(w => w.name.toLowerCase() === query.toLowerCase());
+            const card = document.getElementById('sorter-result-content');
+
+            if (item) {
+                let badgeColor = item.box === 'Hijau' ? 'bg-emerald-500' : (item.box === 'Kuning' ? 'bg-amber-500' : 'bg-rose-500');
+                let badgeClass = item.box === 'Hijau' ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : (item.box === 'Kuning' ? 'text-amber-700 bg-amber-50 border-amber-200' : 'text-rose-700 bg-rose-50 border-rose-200');
+
+                card.innerHTML = `
+                    <div class="text-left space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Hasil Analisis Sorter</span>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold border ${badgeClass}">
+                                <i class="fa-solid fa-box mr-1"></i> Rekomendasi: BOX ${item.box.toUpperCase()}
+                            </span>
+                        </div>
+                        <h3 class="text-2xl font-extrabold text-slate-800">${item.name}</h3>
+                        <p class="text-xs text-slate-600"><strong class="text-slate-800">Alasan Pemilahan:</strong> ${item.reason}</p>
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-700">
+                            <span class="font-bold text-brand-600 block mb-1"><i class="fa-solid fa-circle-check"></i> Tips Pengolahan Terbaik:</span>
+                            ${item.tips}
+                        </div>
+                        <button onclick="switchTab('dashboard'); addWasteTo('${item.box === 'Hijau' ? 'green' : (item.box === 'Kuning' ? 'yellow' : 'red')}');" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-xs shadow transition">
+                            + Setor Langsung Ke Box ${item.box}
+                        </button>
+                    </div>
+                `;
+            } else {
+                card.innerHTML = `
+                    <div class="text-center py-4">
+                        <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-2 text-xl">
+                            <i class="fa-solid fa-circle-question"></i>
+                        </div>
+                        <h4 class="font-bold text-slate-800">Bahan Belum Terdaftar Secara Spesifik</h4>
+                        <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">Gunakan panduan umum: Sisa sayur mentah masuk <strong>Box Hijau</strong>, olahan/masakan masuk <strong>Box Kuning</strong>, dan kulit buah ke <strong>Box Merah</strong>.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function liveSearchWaste() {
+            const val = document.getElementById('sorter-search').value.trim();
+            if (val.length > 2) {
+                checkWaste(val);
+            }
+        }
+
+        // Add Waste & State Update
+        function addWasteTo(boxKey) {
+            document.getElementById('sim-box-target').value = boxKey;
+            openAddWasteModal();
+        }
+
+        function openAddWasteModal() {
+            document.getElementById('modal-add-waste').classList.remove('hidden');
+        }
+
+        function closeAddWasteModal() {
+            document.getElementById('modal-add-waste').classList.add('hidden');
+        }
+
+        function executeWasteAdd() {
+            const boxKey = document.getElementById('sim-box-target').value;
+            const weight = parseFloat(document.getElementById('sim-waste-weight').value) || 1;
+
+            // Calculate increases
+            const capIncrease = Math.round(weight * 8);
+            state.boxes[boxKey].capacity = Math.min(100, state.boxes[boxKey].capacity + capIncrease);
+
+            const addedPoints = Math.round(weight * 50);
+            state.points += addedPoints;
+
+            const addedCo2 = weight * 2.5;
+            state.stats.recycledKg += weight;
+            state.stats.co2SavedKg += addedCo2;
+            state.stats.treesSaved = Math.floor(state.stats.co2SavedKg / 20);
+
+            // Update UI elements
+            updateUI();
+            closeAddWasteModal();
+
+            showNotif('Setor Sampah Berhasil!', `Anda menyetor ${weight} kg sampah ke Box ${boxKey.toUpperCase()}. Berhasil mendapatkan +${addedPoints} Poin!`);
+        }
+
+        function updateUI() {
+            // Points Display
+            document.getElementById('user-points').innerText = state.points.toLocaleString();
+            document.getElementById('store-points-display').innerText = `${state.points.toLocaleString()} Poin`;
+
+            // Box Displays
+            ['green', 'yellow', 'red'].forEach(key => {
+                const box = state.boxes[key];
+                document.getElementById(`box-${key}-cap-text`).innerText = `${box.capacity}%`;
+                document.getElementById(`box-${key}-bar`).style.width = `${box.capacity}%`;
+                
+                if (box.capacity >= 90) {
+                    document.getElementById(`box-${key}-status`).innerText = 'Hampir Penuh!';
+                    document.getElementById(`box-${key}-status`).className = 'text-xs font-bold px-2.5 py-1 bg-rose-100 text-rose-700 rounded-lg border border-rose-300 animate-pulse';
+                }
+            });
+
+            // Carbon stats
+            document.getElementById('total-waste-recycled').innerText = `${state.stats.recycledKg.toFixed(1)} kg`;
+            document.getElementById('total-co2-saved').innerText = `${state.stats.co2SavedKg.toFixed(2)} kg`;
+            document.getElementById('total-trees-saved').innerText = `${state.stats.treesSaved} Pohon`;
+        }
+
+        // Rewards Redemption
+        function redeemReward(itemName, cost) {
+            if (state.points < cost) {
+                showNotif('Poin Tidak Cukup', `Anda membutuhkan ${cost} poin untuk menukar ${itemName}. Yuk setor sampah lagi untuk menambah poin!`, 'fa-triangle-exclamation');
+                return;
+            }
+
+            state.points -= cost;
+            updateUI();
+            showNotif('Penukaran Sukses!', `Voucher / Hadiah '${itemName}' berhasil ditukarkan. Kode klaim telah dikirimkan ke akun Anda.`);
+        }
+
+        // Pickup Form Submit
+        function submitPickup(event) {
+            event.preventDefault();
+            const date = document.getElementById('pickup-date').value;
+            const time = document.getElementById('pickup-time').value;
+
+            showNotif('Penjemputan Dijadwalkan!', `Mitra kurir Setor Sayur dijadwalkan mengambil box pada tanggal ${date} jam ${time}.`);
+            // Reset red box capacity simulated
+            state.boxes.red.capacity = 10;
+            updateUI();
+        }
+
+        // AI Chatbot Logic
+        function toggleChatWindow() {
+            document.getElementById('chat-window').classList.toggle('hidden');
+        }
+
+        function openChatWith(topic) {
+            document.getElementById('chat-window').classList.remove('hidden');
+            if (topic === 'tips') {
+                sendQuickChat('Bagaimana tips agar kompos tidak bau?');
+            }
+        }
+
+        function handleChatKeyPress(e) {
+            if (e.key === 'Enter') sendChatMessage();
+        }
+
+        function sendQuickChat(msg) {
+            document.getElementById('chat-input').value = msg;
+            sendChatMessage();
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            const chatLog = document.getElementById('chat-messages');
+
+            // Append User Message
+            chatLog.innerHTML += `
+                <div class="flex items-start justify-end space-x-2">
+                    <div class="bg-brand-600 text-white p-3 rounded-2xl max-w-[80%] shadow-sm">
+                        ${message}
+                    </div>
+                </div>
+            `;
+
+            input.value = '';
+            chatLog.scrollTop = chatLog.scrollHeight;
+
+            // Generate AI Response Simulation
+            setTimeout(() => {
+                let reply = "Terima kasih atas pertanyaannya! Pastikan komposisi C/N (sampah cokelat & hijau) seimbang agar dekomposisi berjalan cepat dan tanpa bau.";
+                const lower = message.toLowerCase();
+
+                if (lower.includes('bau')) {
+                    reply = "Kompos berbau biasanya karena terlalu basah / anaerob. Solusi: Tambahkan serbuk kayu/daun kering dan aduk sebentar Box Kuning Anda untuk sirkulasi O2.";
+                } else if (lower.includes('tukar') || lower.includes('poin')) {
+                    reply = "Setiap 1 kg sampah disetor mendapat 50 Poin. Poin bisa ditukar via menu 'Tukar Poin' dengan voucher pulsa, diskon sayur, atau pupuk matang!";
+                } else if (lower.includes('hijau') || lower.includes('kuning')) {
+                    reply = "Box Hijau khusus sayuran mentah segar (cepat terurai & tinggi nitrogen). Box Kuning untuk sayuran masak/layu (tiriskan kuah/minyaknya ya!).";
+                }
+
+                chatLog.innerHTML += `
+                    <div class="flex items-start space-x-2">
+                        <div class="w-7 h-7 bg-brand-600 text-white rounded-lg flex items-center justify-center flex-shrink-0 text-xs"><i class="fa-solid fa-leaf"></i></div>
+                        <div class="bg-white p-3 rounded-2xl border border-slate-200 max-w-[80%] text-slate-700 shadow-sm">
+                            ${reply}
+                        </div>
+                    </div>
+                `;
+                chatLog.scrollTop = chatLog.scrollHeight;
+            }, 600);
+        }
+
+        // Notification Modal Helpers
+        function showNotif(title, msg, iconClass = 'fa-check') {
+            document.getElementById('notif-title').innerText = title;
+            document.getElementById('notif-message').innerText = msg;
+            document.getElementById('notif-icon').className = `fa-solid ${iconClass}`;
+            document.getElementById('modal-notif').classList.remove('hidden');
+        }
+
+        function closeNotifModal() {
+            document.getElementById('modal-notif').classList.add('hidden');
+        }
+
+        // Initialize Chart.js
+        function initCarbonChart() {
+            const ctx = document.getElementById('carbonChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt'],
+                    datasets: [{
+                        label: 'Pengurangan CO2e (kg)',
+                        data: [12, 19, 28, 42, 55, 68, 85, 98, 110, 121.25],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#059669',
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            grid: { color: '#f1f5f9' },
+                            ticks: { font: { family: 'Plus Jakarta Sans', size: 11 } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { family: 'Plus Jakarta Sans', size: 11 } }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
